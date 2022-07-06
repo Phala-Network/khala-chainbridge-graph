@@ -1,6 +1,6 @@
 import { bridge as Bridge, Deposit, ProposalEvent, ProposalVote } from '../generated/bridge/bridge'
-import { erc20AssetHandler as Erc20AssetHandler } from '../generated/bridge/erc20AssetHandler'
-import { Tx, BridgeOutboundingRecord, BridgeInboundingRecord } from '../generated/schema'
+import { erc20AssetHandler as Erc20AssetHandler, Deposited, Withdrawn} from '../generated/bridge/erc20AssetHandler'
+import { Tx, BridgeOutboundingRecord, BridgeInboundingRecord, ERC20Deposited, ERC20Withdrawn} from '../generated/schema'
 
 enum ProposalStatus {
     Inactive,
@@ -154,4 +154,34 @@ export function handleProposalVote(event: ProposalVote): void {
 
         record.save()
     }
+}
+
+export function handleERC20Deposited(event: Deposited): void {
+    let token = event.params.token
+    let recipient = event.params.recipient
+    let amount = event.params.amount
+
+    let record = new ERC20Deposited(recipient.toHexString() + '-' + event.transaction.hash.toHexString())
+    record.createdAt = event.block.timestamp
+
+    record.token = token.toHexString()
+    record.recipient = recipient.toHexString()
+    record.amount = amount
+
+    record.save()
+}
+
+export function handleERC20Withdrawn(event: Withdrawn): void {
+    let token = event.params.token
+    let depositer = event.params.depositer
+    let amount = event.params.amount
+
+    let record = new ERC20Withdrawn(depositer.toHexString() + '-' + event.transaction.hash.toHexString())
+    record.createdAt = event.block.timestamp
+
+    record.token = token.toHexString()
+    record.depositer = depositer.toHexString()
+    record.amount = amount
+
+    record.save()
 }

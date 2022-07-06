@@ -1,0 +1,56 @@
+specVersion: 0.0.2
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: Bridge
+    network: mbase
+    source:
+      address: "0x1e4ED6d37685D2FB254e47C5b58Cf95173326E4c"
+      abi: bridge
+      startBlock: 1735494
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      abis:
+        - name: bridge
+          file: ./abis/Bridge.json
+        - name: erc20AssetHandler
+          file: ./abis/ERC20Handler.json
+      entities:
+        - DepositRecord
+        - Proposal
+      eventHandlers:
+        - event: Deposit(indexed uint8,indexed bytes32,indexed uint64)
+          handler: handleDeposit
+        - event: ProposalEvent(indexed uint8,indexed uint64,indexed uint8,bytes32,bytes32)
+          handler: handleProposalEvent
+        - event: ProposalVote(indexed uint8,indexed uint64,indexed uint8,bytes32)
+          handler: handleProposalVote
+      file: ./src/mapping.ts
+  - kind: ethereum/contract
+    name: ERC20Handler
+    network: mbase
+    source:
+      address: "0x0B674CC89F54a47Be4Eb6C1A125bB8f04A529181"
+      abi: erc20AssetHandler
+      startBlock: 1735496
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      abis:
+        - name: bridge
+          file: ./abis/Bridge.json
+        - name: erc20AssetHandler
+          file: ./abis/ERC20Handler.json
+      entities:
+        - ERC20Deposited
+        - ERC20Withdrawn
+      eventHandlers:
+        - event: Deposited(indexed address,indexed address,uint256)
+          handler: handleERC20Deposited
+        - event: Withdrawn(indexed address,indexed address,uint256)
+          handler: handleERC20Withdrawn
+      file: ./src/mapping.ts
