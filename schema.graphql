@@ -12,7 +12,7 @@ type Tx @entity {
     sender: String!
 }
 
-type BridgeOutboundingRecord @entity {
+type CTxSent @entity {
     id: ID!
     createdAt: BigInt!
 
@@ -31,7 +31,7 @@ type BridgeOutboundingRecord @entity {
     sender: String @index
 }
 
-type BridgeInboundingRecord @entity {
+type CTxReceived @entity {
     id: ID!
     createdAt: BigInt!
 
@@ -56,7 +56,7 @@ type ERC20Deposited @entity {
     token: String! @index
     recipient: String! @index
     amount: BigInt!
-    # The relevant transaction, should equal to executeTx of BridgeInboundingRecord
+    # The relevant transaction, should equal to executeTx of CTxReceived
     tx: Tx
 }
 
@@ -67,6 +67,6 @@ type ERC20Withdrawn @entity {
     token: String! @index
     depositer: String! @index
     amount: BigInt!
-    # The relevant transaction, should equal to sendTx of BridgeOutboundingRecord
+    # The relevant transaction, should equal to sendTx of CTxSent
     tx: Tx
 }

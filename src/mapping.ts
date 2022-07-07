@@ -1,6 +1,6 @@
 import { bridge as Bridge, Deposit, ProposalEvent, ProposalVote } from '../generated/bridge/bridge'
 import { erc20AssetHandler as Erc20AssetHandler, Deposited, Withdrawn} from '../generated/bridge/erc20AssetHandler'
-import { Tx, BridgeOutboundingRecord, BridgeInboundingRecord, ERC20Deposited, ERC20Withdrawn} from '../generated/schema'
+import { Tx, CTxSent, CTxReceived, ERC20Deposited, ERC20Withdrawn} from '../generated/schema'
 
 enum ProposalStatus {
     Inactive,
@@ -12,7 +12,7 @@ enum ProposalStatus {
 
 export function handleDeposit(event: Deposit): void {
     // get deposit info
-    let record = new BridgeOutboundingRecord(event.params.destinationChainID.toString() + '-' + event.params.depositNonce.toString())
+    let record = new CTxSent(event.params.destinationChainID.toString() + '-' + event.params.depositNonce.toString())
     record.createdAt = event.block.timestamp
     record.destChainId = event.params.destinationChainID
     record.depositNonce = event.params.depositNonce
@@ -45,7 +45,7 @@ function createRecordByProposalEvent(event: ProposalEvent): void {
     let originChainId = event.params.originChainID
     let resourceId = event.params.resourceID
 
-    let record = new BridgeInboundingRecord(originChainId.toString() + '-' + depositNonce.toString())
+    let record = new CTxReceived(originChainId.toString() + '-' + depositNonce.toString())
     record.createdAt = event.block.timestamp
 
     record.originChainId = originChainId
@@ -61,7 +61,7 @@ function createRecordByProposalVote(event: ProposalVote): void {
     let originChainId = event.params.originChainID
     let resourceId = event.params.resourceID
 
-    let record = new BridgeInboundingRecord(originChainId.toString() + '-' + depositNonce.toString())
+    let record = new CTxReceived(originChainId.toString() + '-' + depositNonce.toString())
     record.createdAt = event.block.timestamp
 
     record.originChainId = originChainId
@@ -87,7 +87,7 @@ export function handleProposalEvent(event: ProposalEvent): void {
     let originChainId = event.params.originChainID
 
     if (event.params.status === ProposalStatus.Active) {
-        let record = BridgeInboundingRecord.load(originChainId.toString() + '-' + depositNonce.toString());
+        let record = CTxReceived.load(originChainId.toString() + '-' + depositNonce.toString());
         if (record == null) {
             // proposal just being created
             createRecordByProposalEvent(event)
@@ -99,7 +99,7 @@ export function handleProposalEvent(event: ProposalEvent): void {
     }
 
     if (event.params.status === ProposalStatus.Passed) {
-        let record = BridgeInboundingRecord.load(originChainId.toString() + '-' + depositNonce.toString());
+        let record = CTxReceived.load(originChainId.toString() + '-' + depositNonce.toString());
         if (record == null) {
             // shouldn't be here, but we still create a new one
             createRecordByProposalEvent(event)
@@ -110,7 +110,7 @@ export function handleProposalEvent(event: ProposalEvent): void {
     }
 
     if (event.params.status === ProposalStatus.Executed) {
-        let record = BridgeInboundingRecord.load(originChainId.toString() + '-' + depositNonce.toString());
+        let record = CTxReceived.load(originChainId.toString() + '-' + depositNonce.toString());
         if (record !== null) {
             // with this vote transaction, proposal arrived threshold
             // get transaction data, sendTx maybe created within ERC20Deposited handler according to the sequence
@@ -129,7 +129,7 @@ export function handleProposalEvent(event: ProposalEvent): void {
     }
 
     if (event.params.status === ProposalStatus.Cancelled) {
-        let record = BridgeInboundingRecord.load(originChainId.toString() + '-' + depositNonce.toString());
+        let record = CTxReceived.load(originChainId.toString() + '-' + depositNonce.toString());
         if (record == null) {
             // shouldn't be here, but we still create a new one
             createRecordByProposalEvent(event)
@@ -144,7 +144,7 @@ export function handleProposalVote(event: ProposalVote): void {
     let depositNonce = event.params.depositNonce
     let originChainId = event.params.originChainID
 
-    let record = BridgeInboundingRecord.load(originChainId.toString() + '-' + depositNonce.toString());
+    let record = CTxReceived.load(originChainId.toString() + '-' + depositNonce.toString());
     if (record == null) {
         // proposal just being created
         createRecordByProposalVote(event)
@@ -175,7 +175,7 @@ export function handleERC20Deposited(event: Deposited): void {
     record.recipient = recipient.toHexString()
     record.amount = amount
 
-    // get transaction data, tx maybe created within BridgeInboundingRecord handler according to the sequence
+    // get transaction data, tx maybe created within CTxReceived handler according to the sequence
     let tx = Tx.load(event.transaction.hash.toHexString());
     if (tx == null) {
         tx = new Tx(event.transaction.hash.toHexString())
@@ -200,7 +200,7 @@ export function handleERC20Withdrawn(event: Withdrawn): void {
     record.depositer = depositer.toHexString()
     record.amount = amount
 
-    // get transaction data, tx maybe created within BridgeOutboundingRecord handler according to the sequence
+    // get transaction data, tx maybe created within CTxSent handler according to the sequence
     let tx = Tx.load(event.transaction.hash.toHexString());
     if (tx == null) {
         tx = new Tx(event.transaction.hash.toHexString())

@@ -45,7 +45,7 @@ Example query commands
 
 ```sh
 {
-  bridgeInboundingRecords(first:1, orderBy:createdAt, orderDirection: asc) {
+  ctxReceiveds(first:1, orderBy:createdAt, orderDirection: asc) {
     depositNonce
     originChainId
     resourceId
@@ -70,7 +70,7 @@ Corresponding responses
 ```sh
 {
   "data": {
-    "bridgeInboundingRecords": [
+    "cTxReceiveds": [
       {
         "depositNonce": "9",
         "originChainId": 1,
