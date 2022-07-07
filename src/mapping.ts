@@ -1,6 +1,6 @@
 import { bridge as Bridge, Deposit, ProposalEvent, ProposalVote } from '../generated/bridge/bridge'
 import { erc20AssetHandler as Erc20AssetHandler, Deposited, Withdrawn} from '../generated/bridge/erc20AssetHandler'
-import { Tx, CTxSent, CTxReceived, ERC20Deposited, ERC20Withdrawn} from '../generated/schema'
+import { Tx, CTxSent, CTxReceived, ERC20Deposited, ERC20Withdrawn, SendingCount, RecevingCount } from '../generated/schema'
 
 enum ProposalStatus {
     Inactive,
@@ -37,6 +37,17 @@ export function handleDeposit(event: Deposit): void {
     }
     record.sendTx = sendTx.id;
 
+    // Save sending count
+    let sendingCount = SendingCount.load(sendTx.sender);
+    if (sendingCount == null) {
+        sendingCount = new SendingCount(sendTx.sender);
+        sendingCount.count = 1;
+    } else {
+        sendingCount.count += 1;
+    }
+    record.index = sendingCount.count - 1;
+
+    sendingCount.save();
     record.save()
 }
 
@@ -185,6 +196,17 @@ export function handleERC20Deposited(event: Deposited): void {
     }
     record.tx = tx.id;
 
+    // Save sending count
+    let recevingCount = RecevingCount.load(recipient.toHexString());
+    if (recevingCount == null) {
+        recevingCount = new RecevingCount(recipient.toHexString());
+        recevingCount.count = 1;
+    } else {
+        recevingCount.count += 1;
+    }
+    record.index = recevingCount.count - 1;
+
+    recevingCount.save();
     record.save()
 }
 

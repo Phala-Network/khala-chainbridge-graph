@@ -29,6 +29,9 @@ type CTxSent @entity {
     sendTx: Tx
     # Sender can be used to construct user transaction history
     sender: String @index
+
+    # Index used to support query specific range of records
+    index: Int!
 }
 
 type CTxReceived @entity {
@@ -58,6 +61,10 @@ type ERC20Deposited @entity {
     amount: BigInt!
     # The relevant transaction, should equal to executeTx of CTxReceived
     tx: Tx
+
+    # Index used to support query specific range of records
+    # We save index here rather than CTxReceived because we can not get recipient from it
+    index: Int!
 }
 
 type ERC20Withdrawn @entity {
@@ -69,4 +76,16 @@ type ERC20Withdrawn @entity {
     amount: BigInt!
     # The relevant transaction, should equal to sendTx of CTxSent
     tx: Tx
+}
+
+# Save sending transaction count, id should be sender address
+type SendingCount @entity {
+    id: ID!
+    count: Int!
+}
+
+# Save receving transaction count, id should be recipient address
+type RecevingCount @entity {
+    id: ID!
+    count: Int!
 }
