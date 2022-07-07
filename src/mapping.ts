@@ -11,14 +11,14 @@ enum ProposalStatus {
 }
 
 export function handleDeposit(event: Deposit): void {
-    // get deposit info
+    // Get deposit info
     let record = new CTxSent(event.params.destinationChainID.toString() + '-' + event.params.depositNonce.toString())
     record.createdAt = event.block.timestamp
     record.destChainId = event.params.destinationChainID
     record.depositNonce = event.params.depositNonce
     record.resourceId = event.params.resourceID.toHexString()
 
-    // get meta data from erc20handler storage
+    // Get meta data from erc20handler storage
     let bridge = Bridge.bind(event.address)
     let handlerAddress = bridge._resourceIDToHandlerAddress(event.params.resourceID)
     let handler = Erc20AssetHandler.bind(handlerAddress)
@@ -27,7 +27,7 @@ export function handleDeposit(event: Deposit): void {
     record.recipient = handlerRecord._destinationRecipientAddress.toHexString()
     record.sender = handlerRecord._depositer.toHexString()
 
-    // get transaction data, sendTx maybe created within ERC20Withdrawn handler according to the sequence
+    // Get transaction data, sendTx maybe created within ERC20Withdrawn handler according to the sequence
     let sendTx = Tx.load(event.transaction.hash.toHexString());
     if (sendTx == null) {
         sendTx = new Tx(event.transaction.hash.toHexString())
@@ -89,10 +89,10 @@ export function handleProposalEvent(event: ProposalEvent): void {
     if (event.params.status === ProposalStatus.Active) {
         let record = CTxReceived.load(originChainId.toString() + '-' + depositNonce.toString());
         if (record == null) {
-            // proposal just being created
+            // Proposal just being created
             createRecordByProposalEvent(event)
         } else {
-            // if proposal hasn't arrive the threshold, proposal would keep active
+            // If proposal hasn't arrive the threshold, proposal would keep active
             record.status = 'Active'
             record.save()
         }
@@ -101,7 +101,7 @@ export function handleProposalEvent(event: ProposalEvent): void {
     if (event.params.status === ProposalStatus.Passed) {
         let record = CTxReceived.load(originChainId.toString() + '-' + depositNonce.toString());
         if (record == null) {
-            // shouldn't be here, but we still create a new one
+            // Shouldn't be here, but we still create a new one
             createRecordByProposalEvent(event)
         } else {
             record.status = 'Passed'
@@ -112,8 +112,8 @@ export function handleProposalEvent(event: ProposalEvent): void {
     if (event.params.status === ProposalStatus.Executed) {
         let record = CTxReceived.load(originChainId.toString() + '-' + depositNonce.toString());
         if (record !== null) {
-            // with this vote transaction, proposal arrived threshold
-            // get transaction data, sendTx maybe created within ERC20Deposited handler according to the sequence
+            // With this vote transaction, proposal arrived threshold
+            // Get transaction data, sendTx maybe created within ERC20Deposited handler according to the sequence
             let executeTx = Tx.load(event.transaction.hash.toHexString());
             if (executeTx == null) {
                 executeTx = new Tx(event.transaction.hash.toHexString())
@@ -131,7 +131,7 @@ export function handleProposalEvent(event: ProposalEvent): void {
     if (event.params.status === ProposalStatus.Cancelled) {
         let record = CTxReceived.load(originChainId.toString() + '-' + depositNonce.toString());
         if (record == null) {
-            // shouldn't be here, but we still create a new one
+            // Shouldn't be here, but we still create a new one
             createRecordByProposalEvent(event)
         } else {
             record.status = 'Cancelled'
@@ -146,10 +146,10 @@ export function handleProposalVote(event: ProposalVote): void {
 
     let record = CTxReceived.load(originChainId.toString() + '-' + depositNonce.toString());
     if (record == null) {
-        // proposal just being created
+        // Proposal just being created
         createRecordByProposalVote(event)
     } else {
-        // save the new vote tx
+        // Save the new vote tx
         let voteTx = new Tx(event.transaction.hash.toHexString())
         voteTx.hash = event.transaction.hash.toHexString()
         voteTx.sender = event.transaction.from.toHexString()
@@ -175,7 +175,7 @@ export function handleERC20Deposited(event: Deposited): void {
     record.recipient = recipient.toHexString()
     record.amount = amount
 
-    // get transaction data, tx maybe created within CTxReceived handler according to the sequence
+    // Get transaction data, tx maybe created within CTxReceived handler according to the sequence
     let tx = Tx.load(event.transaction.hash.toHexString());
     if (tx == null) {
         tx = new Tx(event.transaction.hash.toHexString())
@@ -200,7 +200,7 @@ export function handleERC20Withdrawn(event: Withdrawn): void {
     record.depositer = depositer.toHexString()
     record.amount = amount
 
-    // get transaction data, tx maybe created within CTxSent handler according to the sequence
+    // Get transaction data, tx maybe created within CTxSent handler according to the sequence
     let tx = Tx.load(event.transaction.hash.toHexString());
     if (tx == null) {
         tx = new Tx(event.transaction.hash.toHexString())
