@@ -56,6 +56,8 @@ type ERC20Deposited @entity {
     token: String! @index
     recipient: String! @index
     amount: BigInt!
+    # The relevant transaction, should equal to executeTx of BridgeInboundingRecord
+    tx: Tx
 }
 
 type ERC20Withdrawn @entity {
@@ -65,4 +67,6 @@ type ERC20Withdrawn @entity {
     token: String! @index
     depositer: String! @index
     amount: BigInt!
+    # The relevant transaction, should equal to sendTx of BridgeOutboundingRecord
+    tx: Tx
 }
